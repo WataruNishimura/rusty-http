@@ -12,9 +12,13 @@ pub struct HttpResponse {
 }
 
 impl HttpResponse {
-    pub fn new(response_str: String) -> Self {
+    pub fn new(raw_response: String) -> Self {
 
-        let mut lines = response_str.lines();
+        let preprocessed_responses = raw_response.trim_start()
+            .replace("\r\n\r\n", "\r\n")
+            .replace("\r\n", "\n");
+
+        let mut lines = preprocessed_responses.lines();
         let status_line = lines.next().unwrap_or("");
         let mut parts = status_line.split_whitespace();
 
