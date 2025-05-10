@@ -36,6 +36,11 @@ impl HttpClient {
         return Err(Error::Network("No IP addresses found".to_string()));
       }
 
+      println!("IP addresses for {}: ", &host);
+      for ip in ips.iter() {
+        println!("IP address: {}", ip);
+      }
+
       
       let socket_addr = SocketAddr::new(ips[0], port);
 
@@ -64,9 +69,9 @@ impl HttpClient {
 
       let request: String = format!("{}\r\n{}\r\n", request_line, headers.join("\r\n"));
 
-      let bytes_written = match stream.write(request.as_bytes()) {
+      let _bytes_written: usize = match stream.write(request.as_bytes()) {
           Ok(bytes) => bytes,
-          Err(e) => {
+          Err(_e) => {
             return Err(Error::Network("Failed to write to server".to_string()));
           }
       };
