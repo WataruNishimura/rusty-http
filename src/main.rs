@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // For now, let's just print a success message.
             // We'll need to implement Display or a method to get the body for HttpResponse later.
             println!("Successfully received response from {}:{}{}", host, port, path);
-            println!("Response: {:?}", response);
+            println!("Response: {:?}", response.body());
         }
         Err(e) => {
             eprintln!("Error during GET request: {}", e);
