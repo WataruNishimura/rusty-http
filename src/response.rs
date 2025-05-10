@@ -1,1 +1,47 @@
-pub struct HttpResponse {}
+use alloc::string::String;
+use alloc::vec::Vec;
+
+use crate::header::Header;
+
+pub struct HttpResponse {
+    pub status_code: u16,
+    pub headers: Vec<Header>,
+    pub body: String,
+    pub version: String,
+    pub reason_phrase: String,
+}
+
+impl HttpResponse {
+    pub fn new(response_str: String) -> Self {
+
+        let mut lines = response_str.lines();
+        let status_line = lines.next().unwrap_or("");
+        let mut parts = status_line.split_whitespace();
+
+        let version = parts.next().unwrap_or("").to_string();
+        let status_code: u16 = parts.next().unwrap_or("0").parse().unwrap_or(0);
+        let reason_phrase = parts.collect::<Vec<&str>>().join(" ");
+
+        let header_strings: Vec<String> = lines.map(|line| line.to_string()).collect();
+        let body = header_strings.last().unwrap_or(&"".to_string()).to_string();
+
+        let headers: Vec<Header> = header_strings
+            .iter()
+            .filter_map(|line| {
+                if line.contains(": ") {
+                    Some(Header::new(line.clone()))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        Self {
+            status_code,
+            headers,
+            body,
+            version,
+            reason_phrase,
+        }
+    }
+}
