@@ -1,5 +1,8 @@
+use std::os::macos::raw::stat;
+
 use alloc::string::String;
 use alloc::vec::Vec;
+use trust_dns_resolver::proto::op::header;
 
 use crate::header::Header;
 
@@ -18,27 +21,30 @@ impl HttpResponse {
             .replace("\r\n\r\n", "\r\n")
             .replace("\r\n", "\n");
 
-        let mut lines = preprocessed_responses.lines();
-        let status_line = lines.next().unwrap_or("");
-        let mut parts = status_line.split_whitespace();
+        let (status_line, headers_body) = match preprocessed_responses.split_once("\n") {
+            Some((status_line, headers_body)) => (status_line, headers_body),
+            None => panic!("Invalid HTTP response format"),
+        };
 
-        let version = parts.next().unwrap_or("").to_string();
-        let status_code: u16 = parts.next().unwrap_or("0").parse().unwrap_or(0);
-        let reason_phrase = parts.collect::<Vec<&str>>().join(" ");
+        let (headers, body) = match headers_body.split_once("\n\n") {
+            Some((h, b)) => {
+              let mut headers = Vec::new();
+              for header in h.lines() {
+                headers.push(Header::new(header.to_string()));
+              }
 
-        let header_strings: Vec<String> = lines.map(|line| line.to_string()).collect();
-        let body = header_strings.last().unwrap_or(&"".to_string()).to_string();
+              (headers, b.to_string())
+            },
+            None => panic!("Invalid HTTP response format"),
+        };  
 
-        let headers: Vec<Header> = header_strings
-            .iter()
-            .filter_map(|line| {
-                if line.contains(": ") {
-                    Some(Header::new(line.clone()))
-                } else {
-                    None
-                }
-            })
-            .collect();
+        let status_parts: Vec<&str> = status_line.split_whitespace().collect();
+        if status_parts.len() < 3 {
+            panic!("Invalid HTTP response format");
+        }
+        let version = status_parts[0].to_string();
+        let status_code: u16 = status_parts[1].parse().unwrap_or(0);
+        let reason_phrase = status_parts[2..].join(" ");
 
         Self {
             status_code,
