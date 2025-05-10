@@ -47,6 +47,11 @@ impl HttpClient {
           }
       };
 
+      // TCPコネクションのタイムアウトを設定
+      if let Err(_e) = stream.set_read_timeout(Some(std::time::Duration::new(5, 0))) {
+          return Err(Error::Network("Failed to set read timeout".to_string()));
+      }
+
       // HTTPリクエストを作成
       let request_line: String = format!("GET {} HTTP/1.1\r\nHost: {}\r\n", path, host);
 
