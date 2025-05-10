@@ -27,7 +27,7 @@ impl HttpClient {
 
       let ips = match resolver.lookup_ip(&host) {
           Ok(response) => response.iter().collect::<Vec<IpAddr>>(),
-          Err(e) => {
+          Err(_e) => {
             return Err(Error::Network("Failed to find IP addresses".to_string()));
           }
       };
@@ -41,8 +41,8 @@ impl HttpClient {
 
       // TCPコネクションを構築
       let mut stream = match TcpStream::connect(socket_addr) {
-          Ok(mut stream) => stream,
-          Err(e) => {
+          Ok(stream) => stream,
+          Err(_e) => {
             return Err(Error::Network("Failed to connect to server".to_string()));
           }
       };
