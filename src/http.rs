@@ -25,7 +25,7 @@ impl HttpClient {
     pub fn get (&self, host: String, port: u16, path: String) -> Result<HttpResponse, Error> {
       let resolver = Resolver::new(ResolverConfig::default(), ResolverOpts::default()).unwrap();
 
-      let ips = match resolver.lookup_ip(host) {
+      let ips = match resolver.lookup_ip(&host) {
           Ok(response) => response.iter().collect::<Vec<IpAddr>>(),
           Err(e) => {
             return Err(Error::Network("Failed to find IP addresses".to_string()));
