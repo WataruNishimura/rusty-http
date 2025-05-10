@@ -48,4 +48,24 @@ impl HttpResponse {
             reason_phrase,
         }
     }
+
+    pub fn status_code(&self) -> u16 {
+        self.status_code
+    }
+
+    pub fn headers(&self) -> &[Header] {
+        &self.headers
+    }
+
+    pub fn body(&self) -> &str {
+        &self.body
+    }
+
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    pub fn reason_phrase(&self) -> &str {
+        &self.reason_phrase
+    }
 }
