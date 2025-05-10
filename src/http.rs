@@ -52,9 +52,12 @@ impl HttpClient {
           }
       };
 
-      // TCPコネクションのタイムアウトを設定
-      if let Err(_e) = stream.set_read_timeout(Some(std::time::Duration::new(5, 0))) {
-          return Err(Error::Network("Failed to set read timeout".to_string()));
+      // 非ブロッキングモードを設定
+      match stream.set_nonblocking(true) {
+          Ok(_) => {}
+          Err(_e) => {
+            return Err(Error::Network("Failed to set non-blocking mode".to_string()));
+          }
       }
 
       // HTTPリクエストを作成
@@ -69,29 +72,36 @@ impl HttpClient {
 
       let request: String = format!("{}\r\n{}\r\n", request_line, headers.join("\r\n"));
 
-      let _bytes_written: usize = match stream.write(request.as_bytes()) {
-          Ok(bytes) => bytes,
+      println!("----Request:\r\n{}------", request);
+
+      match stream.write_all(request.as_bytes()) {
+          Ok(_bytes) => (),
           Err(_e) => {
             return Err(Error::Network("Failed to write to server".to_string()));
           }
       };
+      stream.shutdown(std::net::Shutdown::Write).ok();
 
       let mut received = Vec::new();
 
       loop {
           let mut buffer = [0u8; 4096];
-          let bytes_read= match stream.read(&mut buffer) {
-              Ok(n) => n,
-              Err(_e) => {
+          match stream.read(&mut buffer) {
+              Ok(0) => {
+                println!("Connection closed by server");
+                break;
+              }
+              Ok(n) => received.extend_from_slice(&buffer[..n]),
+              Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                // マニュアルでのポーリング実装
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                continue;
+              }
+              Err(e) => {
+                eprintln!("read error: {:?}", e); // エラーの種類を出力
                 return Err(Error::Network("Failed to read from server".to_string()));
               }
           };
-
-          if bytes_read == 0 {
-              break;
-          }
-
-          received.extend_from_slice(&buffer[..bytes_read]);
       }
 
       match core::str::from_utf8(&received) {
