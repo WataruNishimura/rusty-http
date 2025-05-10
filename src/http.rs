@@ -1,6 +1,9 @@
 extern crate alloc; 
 use alloc::string::String;
 
+use crate::response::HttpResponse;
+use crate::error::Error;
+
 pub struct HttpClient {
 
 }
@@ -10,7 +13,7 @@ impl HttpClient {
         Self {}
     }
 
-    pub fn get (&self, host: String, port: u16, ) ->  {
-
+    pub fn get (&self, host: String, port: u16, path: String) -> Result<HttpResponse, Error> {
+      
     }
 }
