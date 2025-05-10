@@ -69,3 +69,30 @@ impl HttpResponse {
         &self.reason_phrase
     }
 }
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_one_header() {
+        let raw_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\nHello, world!";
+        let response = HttpResponse::new(raw_response.to_string());
+
+        assert_eq!(response.status_code(), 200);
+        assert_eq!(response.reason_phrase(), "OK");
+        assert_eq!(response.body(), "Hello, world!");
+        assert_eq!(response.version(), "HTTP/1.1");
+        assert_eq!(response.headers().len(), 1);
+    }
+    #[test]
+    fn test_multiple_headers() {
+        let raw_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 13\r\n\r\nHello, world!";
+        let response = HttpResponse::new(raw_response.to_string());
+
+        assert_eq!(response.status_code(), 200);
+        assert_eq!(response.reason_phrase(), "OK");
+        assert_eq!(response.body(), "Hello, world!");
+        assert_eq!(response.version(), "HTTP/1.1");
+        assert_eq!(response.headers().len(), 2);
+    }
+}
