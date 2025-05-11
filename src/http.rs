@@ -52,16 +52,8 @@ impl HttpClient {
           }
       };
 
-      // 非ブロッキングモードを設定
-      match stream.set_nonblocking(true) {
-          Ok(_) => {}
-          Err(_e) => {
-            return Err(Error::Network("Failed to set non-blocking mode".to_string()));
-          }
-      }
-
       // HTTPリクエストを作成
-      let request_line: String = format!("GET {} HTTP/1.1\r\nHost: {}\r\n", path, host);
+      let request_line: String = format!("GET {} HTTP/1.1", path);
 
       let headers: Vec<String> = vec![
           format!("Host: {}", host),
@@ -70,7 +62,7 @@ impl HttpClient {
           "Accept: */*".to_string(),
       ];  
 
-      let request: String = format!("{}\r\n{}\r\n", request_line, headers.join("\r\n"));
+      let request: String = format!("{}\r\n{}\r\n\r\n", request_line, headers.join("\r\n"));
 
       println!("----Request:\r\n{}------", request);
 
